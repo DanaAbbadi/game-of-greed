@@ -26,6 +26,10 @@ ____
 <br>
 <hr>
 
+# Pull Request:
+
+https://github.com/DanaAbbadi/game-of-greed/pull/2
+
 # Notes:
 
 Full python script, for the tests we used pytest and pywatch.
