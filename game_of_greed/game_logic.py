@@ -4,77 +4,90 @@ import random
 
 
 class GameLogic(ABC):
+
     @staticmethod
-    def rule(num,cmn):
-        if cmn>1 :
-            # print('rule>1')
-            return num*100 * (cmn-2)
-        else :
-            # print('rule=0')
-            return 0
-    @staticmethod
-    def testt(num,repeat):
-        #(1, 5, 6, 4, 1, 5)
-        result=1
-        # print(num)
-        if num==5:
-            if repeat == 1 or repeat == 2 :
-                result= repeat * 50
-                # print('5 <1')
-                return result
-            if repeat >2:
-                # print('5 >5')
-                return GameLogic.rule(num,repeat)
-        if num==1:
-            # print("repeate for 1:",repeat)
-            if repeat == 1 or repeat == 2 :
-                result= repeat * 100
-                # print('one case lees 1')
-                return result
-            if repeat >2:
-                result=(repeat-2) *1000
-                # print('one case')
-                return result
+    def roll_dice(num):
+        """
+        Rolls the dice num times
+
+        Arguments:
+            num {integer} -- how many times to roll the dice
         
+        Output:
+            Returns a tuple of length num
 
+        """
+        try:
+            roll_dice_array=[]
+            for i in range(num):
+                roll_dice_array.append(random.randint(1,6))
+            return tuple(roll_dice_array)
+        except Exception as error:
+            print(f'this is error in roll dice method {error}')
 
-    @staticmethod   
-    def tryyy(data):
-        common=(Counter(data).most_common())
-        len_common= len(Counter(data).most_common()) 
-        sum=0
-        for i in range(len_common):
-            num = common[i][0]
-            cmn = common[i][1]
-            if num != 5 and num != 1:
-                # print('inside tryyy:',num)
-                sum +=GameLogic.rule(num,cmn)
-            else:
-                # print('inside tryyy num is 1:',num)
-                sum+=GameLogic.testt(num,cmn)
-        # print('tryyy the rule')
-        return sum
+  
     @staticmethod
     def calculate_score(calc):
-            # common=Counter(calc).most_common
-            x=Counter(calc).most_common(1)[0][1]
-            # y=Counter(calc).most_common()[0]
-            # print(x)
-            if x == 1 and len(calc)==6:
-                # print('str')
+        """
+        Returns an integer representing the roll’s score according to rules of game.
+
+        Arguments:
+            calc {tuple} -- is a tuple of integers that represent a dice roll.
+        
+        Output:
+            Returns the score according to rules of the game
+
+        """
+        try:
+            x = Counter(calc).most_common()
+
+            #Empty
+            if len(calc) == 0:
+                return 0
+
+            #straight case (1,2,3,4,5,6)    
+            if x[0][1] == 1 and len(calc) == 6:
                 return 1500
+
+            #pairs
             pairs=0
-            if x == 2 and len(calc)==6:
+            if len(calc) == 6 and len(Counter(calc).most_common())==3:
                 for i in range(3):
                     if Counter(calc).most_common()[i][1]==2:
                         pairs+=1
-                if pairs==3:
-                    return 1500
-                else:
-                     return GameLogic.tryyy(calc)
-                
+            if pairs==3:
+                return 1500
+
+
             else:
-                return GameLogic.tryyy(calc)
+                common=(Counter(calc).most_common())
+                len_common= len(Counter(calc).most_common()) 
+                sum=0
+                
+                for i in range(len_common):
+                    num = common[i][0]
+                    cmn = common[i][1]
+                    base=num*100
+
+                    # The case for ones
+                    if num ==1:
+                        if cmn >2 :
+                            base = num*1000
+                        else: 
+                            sum+= base * (cmn)
+                    # The case for 5
+                    if num ==5:
+                        if cmn < 3 :
+                            sum+= num*10 *cmn
+                    # The general formula   
+                    if cmn>1 :
+                        sum += base * (cmn-2)    
+                    
+                return sum
+        except Exception as error:
+                print(f'this is error in roll dice method {error}')
+                
+            
 
 class Banker(ABC):
 
@@ -84,9 +97,18 @@ class Banker(ABC):
     
     
     def shelf(self,num):
+        """
+        Will temporarily store unbanked points
+
+        Argument:
+            num{int} --  is the amount of points (integer) to add to shelf.          
+        """
         self.shelved = +num
 
     def bank(self):
+        """
+        Add any points on the shelf to total and reset shelf    
+        """
         self.balance += self.shelved
         self.shelved = 0
         return self.balance
@@ -97,25 +119,13 @@ class Banker(ABC):
 
 
 
-def roll_dice(num):
-    roll_dice_array=[]
-    for i in range(num):
-        roll_dice_array.append(random.randint(1,6))
-    return tuple(roll_dice_array)
 
 
 if __name__=="__main__":
-    roll=roll_dice(6)
-    # data=[,1,1,1,1,1]
+    roll = GameLogic.roll_dice(6)
     print('roll',roll)    
-    # repeat=Counter(data).most_common()[0][1]
-    # x=Counter(data).most_common()[0][1]
-
-    # print(GameLogic.calculate_score([6,1,4,4,4,6]))
     print(GameLogic.calculate_score(roll))
 
-    # print(Counter(roll).most_common())
-    # print(GameLogic.testt(5,1))
 
 
 
