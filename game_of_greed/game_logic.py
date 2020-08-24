@@ -103,7 +103,8 @@ class Banker(ABC):
         Argument:
             num{int} --  is the amount of points (integer) to add to shelf.          
         """
-        self.shelved = +num
+        self.shelved +=num
+        return self.shelved
 
     def bank(self):
         """
