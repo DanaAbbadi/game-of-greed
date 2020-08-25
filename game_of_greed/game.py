@@ -77,8 +77,7 @@ class Game():
                     else:
                         roll_list = self.is_cheating(roll)
 
-            if len(enter) == 6 and len(roll_list)==6:
-                Game.status = False
+         
         return(roll_list)
 
 
@@ -106,9 +105,10 @@ class Game():
             print(f"Rolling {Game.num_dice} dice...")
             roll=self.roller(Game.num_dice)
             self.print_roll(roll)
-
+            GameLogic.how_many=0
             if not (GameLogic.calculate_score(roll)):
                 self.zilch(len(roll))
+                GameLogic.how_many=0
                 sys.exit()
                 
 
@@ -124,8 +124,12 @@ class Game():
                 if roll_list :  
                     roll_tuple=tuple(roll_list)
                     Game.num_dice-=len(roll_tuple)
-
+                    GameLogic.how_many=0
                     score = GameLogic.calculate_score(roll_tuple)
+                    if len(roll_tuple) == 6 and GameLogic.how_many==6:
+                        # print('hot dice:',GameLogic.how_many)
+                        Game.status = False
+
                     if not score:
                         self.zilch(len(roll_tuple))
 
