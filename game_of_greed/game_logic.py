@@ -4,6 +4,7 @@ import random
 
 
 class GameLogic(ABC):
+    how_many=0
 
     @staticmethod
     def roll_dice(num):
@@ -47,6 +48,7 @@ class GameLogic(ABC):
 
             #straight case (1,2,3,4,5,6)    
             if x[0][1] == 1 and len(calc) == 6:
+                GameLogic.how_many=6
                 return 1500
 
             #pairs
@@ -56,6 +58,7 @@ class GameLogic(ABC):
                     if Counter(calc).most_common()[i][1]==2:
                         pairs+=1
             if pairs==3:
+                GameLogic.how_many=6
                 return 1500
 
 
@@ -67,6 +70,8 @@ class GameLogic(ABC):
                 for i in range(len_common):
                     num = common[i][0]
                     cmn = common[i][1]
+                    if cmn>2 or num==1 or num == 5:
+                        GameLogic.how_many += cmn
                     base=num*100
 
                     # The case for ones
@@ -75,13 +80,16 @@ class GameLogic(ABC):
                             base = num*1000
                         else: 
                             sum+= base * (cmn)
+                            # GameLogic.how_many += 1
                     # The case for 5
                     if num ==5:
                         if cmn < 3 :
                             sum+= num*10 *cmn
+                            # GameLogic.how_many += 1
                     # The general formula   
                     if cmn>1 :
-                        sum += base * (cmn-2)    
+                        sum += base * (cmn-2)  
+                        # GameLogic.how_many += 1  
                     
                 return sum
         except Exception as error:
