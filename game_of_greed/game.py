@@ -78,6 +78,34 @@ class Game():
                         print(f"Total score is {Game.new_game.balance} points")
                         print(f"Thanks for playing. You earned {Game.new_game.balance} points")
                         Game.arguments_reset()
+
+    def wanna_play(self,roll):
+        print("Cheater!!! Or possibly made a typo...")
+        self.print_roll(roll)
+        enter=input("Enter dice to keep (no spaces), or (q)uit: ")
+        if enter.lower() == "q" or enter.lower()=="quit":
+            self.to_quit()
+        else:
+            self.check(roll,enter)
+    def check(self,roll,enter):
+        if not enter.isalpha():
+            if len(enter)<=6:
+                roll_list=[]
+                for i in range(len(enter)):
+                    if roll.count(int(enter[i])):
+                        if enter.count(enter[i]) <= roll.count(int(enter[i])):
+                            roll_list.append(int(enter[i]))
+                        else:
+                            print('before 1st else: ',roll_list)
+                            self.wanna_play(roll)
+                            print('before 1st else: ',roll_list)
+                       
+                    else:
+                        # print('not in the list')
+                        print('before 2nd else: ',roll_list)
+                        self.wanna_play(roll)
+                        print('after 2nd else: ',roll_list)
+        return(roll_list)
 if __name__=="__main__":
     game=Game()
     game.play()
