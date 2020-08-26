@@ -1,101 +1,86 @@
-from abc import abstractmethod, ABC
 from collections import Counter
-import random
+from random import randint
+from abc import abstractmethod, ABC
 
 
-class GameLogic(ABC):
-    how_many=0
+class GameLogic:
+    @staticmethod
+    def roll_dice(num=6):
+        return tuple([randint(1, 6) for _ in range(num)])
 
     @staticmethod
-    def roll_dice(num):
+    def calculate_score(dice):
         """
-        Rolls the dice num times
-
-        Arguments:
-            num {integer} -- how many times to roll the dice
-        
-        Output:
-            Returns a tuple of length num
-
+        dice is a tuple of integers represent the user's selected dice pulled out from current roll
         """
-        try:
-            roll_dice_array=[]
-            for i in range(num):
-                roll_dice_array.append(random.randint(1,6))
-            return tuple(roll_dice_array)
-        except Exception as error:
-            print(f'this is error in roll dice method {error}')
 
-  
+        if len(dice) > 6:
+            raise Exception("Cheating Cheater!")
+
+        counts = Counter(dice)
+
+        if len(counts) == 6:
+            return 1500
+
+        if len(counts) == 3 and all(val == 2 for val in counts.values()):
+            return 1500
+
+        score = 0
+
+        ones_used = fives_used = False
+
+        for num in range(1, 6 + 1):
+
+            pip_count = counts[num]
+
+            if pip_count >= 3:
+
+                if num == 1:
+
+                    ones_used = True
+
+                elif num == 5:
+
+                    fives_used = True
+
+                score += num * 100
+
+                # handle 4,5,6 of a kind
+                score += score * (pip_count - 3)
+
+                # 1s are worth 10x
+                if num == 1:
+                    score *= 10
+
+        if not ones_used:
+            score += counts.get(1, 0) * 100
+
+        if not fives_used:
+            score += counts.get(5, 0) * 50
+
+        return score
+
     @staticmethod
-    def calculate_score(calc):
-        """
-        Returns an integer representing the roll’s score according to rules of game.
+    def validate_keepers(roll, keepers):
+        return not Counter(keepers) - Counter(roll)
 
-        Arguments:
-            calc {tuple} -- is a tuple of integers that represent a dice roll.
-        
-        Output:
-            Returns the score according to rules of the game
+    @staticmethod
+    def get_scorers(dice):
+        all_dice_score = GameLogic.calculate_score(dice)
 
-        """
-        try:
-            x = Counter(calc).most_common()
+        if all_dice_score == 0:
+            return tuple()
 
-            #Empty
-            if len(calc) == 0:
-                return 0
+        scorers = []
 
-            #straight case (1,2,3,4,5,6)    
-            if x[0][1] == 1 and len(calc) == 6:
-                GameLogic.how_many=6
-                return 1500
+        for i in range(len(dice)):
+            sub_roll = dice[:i] + dice[i + 1 :]
+            sub_score = GameLogic.calculate_score(sub_roll)
 
-            #pairs
-            pairs=0
-            if len(calc) == 6 and len(Counter(calc).most_common())==3:
-                for i in range(3):
-                    if Counter(calc).most_common()[i][1]==2:
-                        pairs+=1
-            if pairs==3:
-                GameLogic.how_many=6
-                return 1500
+            if sub_score != all_dice_score:
+                scorers.append(dice[i])
 
-
-            else:
-                common=(Counter(calc).most_common())
-                len_common= len(Counter(calc).most_common()) 
-                sum=0
-                
-                for i in range(len_common):
-                    num = common[i][0]
-                    cmn = common[i][1]
-                    if cmn>2 or num==1 or num == 5:
-                        GameLogic.how_many += cmn
-                    base=num*100
-
-                    # The case for ones
-                    if num ==1:
-                        if cmn >2 :
-                            base = num*1000
-                        else: 
-                            sum+= base * (cmn)
-                            # GameLogic.how_many += 1
-                    # The case for 5
-                    if num ==5:
-                        if cmn < 3 :
-                            sum+= num*10 *cmn
-                            # GameLogic.how_many += 1
-                    # The general formula   
-                    if cmn>1 :
-                        sum += base * (cmn-2)  
-                        # GameLogic.how_many += 1  
-                    
-                return sum
-        except Exception as error:
-                print(f'this is error in roll dice method {error}')
-                
-            
+        return tuple(scorers)
 
 class Banker(ABC):
 
@@ -124,18 +109,3 @@ class Banker(ABC):
 
     def clear(self):
         self.shelved = 0
-
-
-
-
-
-
-if __name__=="__main__":
-    roll = GameLogic.roll_dice(6)
-    print('roll',roll)    
-    print(GameLogic.calculate_score(roll))
-
-
-
-
-
