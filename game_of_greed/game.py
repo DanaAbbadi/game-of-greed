@@ -1,185 +1,225 @@
-import os
-import sys
 
-from game_logic import GameLogic, Banker
+from game_of_greed.game_logic import Banker ,GameLogic
+import sys 
+
+class Game():
+
+    new_game=Banker()
+    num_dice=6
+    result=""
+    round=1
+    status=True
+    
+
+
+    def __init__(self,roller=None):
+        self.roller=roller or GameLogic.roll_dice
+        # self.roller=roller
+
+    @staticmethod    
+    def arguments_reset():
+        Game.new_game.shelved=0
+        Game.num_dice=6
+        Game.result=""
+        Game.round=1
+        Game.new_game.balance=0
+        Game.status = True
 
 
 
-class Game:
-    """Class for Game of Greed application
-    """
-    zero_score=False
-    def __init__(self, roller=None, num_rounds=20):
+    
+    @staticmethod
+    def welcome():
+        """
+        * This function will appear once, only at the beggining of the game 
+        * Will ask the user if he/she wants to play the game or quit
+        """
+        print("Welcome to Game of Greed")
+        result=input("Wanna play?")
+        result_lower=result.lower()
+        if result_lower == "n" or result_lower =="no":
+            print("OK. Maybe another time")
+        return result_lower
 
-        self._roller = roller or GameLogic.roll_dice
-        self.banker = Banker()
-        self.num_rounds = num_rounds
-        self.round_num = 0
+    def to_quit(self):
+        """
+        To handle quiting
+        """
+        if Game.status :
+            print(f"Total score is {Game.new_game.balance} points")
+            print(f"Thanks for playing. You earned {Game.new_game.balance} points")        
+        else:
+            print(f"Thanks for playing. You earned {Game.new_game.balance} points")
+        Game.arguments_reset()
+
+
+    def print_roll(self,roll):
+        """
+        Prints the roll of dice
+        """
+        print(','.join([str(i) for i in roll]))
+
+
+
+    def is_cheating(self,roll):
+        """
+        * Will be called if the user cheated, by the check method
+        * Asks the user for anthor input, then calls check method again 
+        * This recursive calling back and forth between check and is_cheating will continue untill either 
+          stops cheating or just quits the game.
+
+        * Arguments:
+            roll -- the roll that the user cheated on
+        """
+        Game.status=False
+        print("Cheater!!! Or possibly made a typo...")
+        self.print_roll(roll)
+        enter=input("Enter dice to keep (no spaces), or (q)uit: ")
+        if enter.lower() == "q" or enter.lower()=="quit":
+            self.to_quit()
+            Game.status=True      
+            return []
+            
+        else:
+            return self.check(roll,enter)
+
+    def check(self,roll,enter):
+        """
+        * To check if the user cheated, by comparing the numbers in the roll with what the user picked
+        
+        * Arguments:
+            roll  -- the roll to check on
+            enter -- what the user picked
+        """
+        if not enter.isalpha():
+            if len(enter)<=6:
+                roll_list=[]
+                leng= len(enter)
+                for i in range(leng): 
+                    if roll.count(int(enter[i])):
+                        if enter.count(enter[i]) <= roll.count(int(enter[i])):
+                            roll_list.append(int(enter[i]))
+                            
+                        else:
+                            roll_list = self.is_cheating(roll)
+                            break
+                    else:
+                        roll_list = self.is_cheating(roll)
+
+         
+        return(roll_list)
+
+
+    def zilch(self,roll):
+        """
+        When the user scores zero
+
+        Arguments:  
+            roll -- the dice roll that scored zero 
+        """
+        print('Zilch!!! Round over')
+        print(f'You banked 0 points in round {Game.round}')
+        print('Total score is 0 points')
+        Game.round+=1
+        Game.num_dice=6
+        Game.new_game.shelved =0
+        if roll ==6:
+            Game.status = False
+        self.play()
+
 
     def play(self):
         """
-        Entry point for playing (or/not) a game
+        * To play the game, this method will keep calling itself untill the game ends, by quitting the game
+        * This method starts the rounds, roll the dice, calculate it's score and so on
+        * Uses all the methods above
+
         """
 
-        print("Welcome to Game of Greed")
-
-        prompt = "Wanna play?"
-
-        self.choice(prompt.strip(), self.start_game, self.decline_game)
-
-    def choice(self, prompt, accept, decline):
-
-        response = input(prompt)
-
-        if response == "y" or response == "yes":
-
-            accept()
-
-        else:
-
-            decline()
-
-    def decline_game(self):
-        print("OK. Maybe another time")
-
-    def start_game(self):
-
-        self.round_num = 1
-
-        while self.round_num <= self.num_rounds:
-
-            self.start_round(self.round_num)
-
-            self.round_num += 1
-
-            print(f"Total score is {self.banker.balance} points")
-
-        self.quit_game()
-
-    def quit_game(self):
-
-        print(f"Thanks for playing. You earned {self.banker.balance} points")
-
-        sys.exit()
-
-    def start_round(self, round, num_dice=6):
-
-        print(f"Starting round {round}")
-
-        round_score = 0
-
-        while True:
-
-            roll = self.roll_dice(num_dice)
-
-            if self.got_zilch(roll):
-                break
-
-            keepers = self.handle_keepers(roll)
-
-            roll_again_response = input("(r)oll again, (b)ank your points or (q)uit ")
-
-            if roll_again_response == "q":
-
-                self.quit_game()
-
-                return
-
-            elif roll_again_response == "b":
-
-                round_score = self.banker.bank()
-
-                break
-
-            else:
-
-                num_dice -= len(keepers)
-
-                if num_dice == 0:
-
-                    num_dice = 6
-
-        print(f"You banked {str(round_score)} points in round {round}")
-
-    def handle_keepers(self, roll):
-
-        while True:
-            keeper_string = input("Enter dice to keep (no spaces), or (q)uit: ")
-
-            if keeper_string.startswith("q"):
-                self.quit_game()
-
-            keepers = self.gather_keepers(roll, keeper_string)
-
-            roll_score = self.calculate_score(keepers)
-
-            if roll_score == 0:
-                print("Must keep at least one scoring dice")
-            else:
-                break
-
-        self.banker.shelf(roll_score)
-
-        print(
-            f"You have {self.banker.shelved} unbanked points and {len(roll) - len(keepers)} dice remaining"
-        )
-
-        return keepers
-
-    def roll_dice(self, num):
-
-        print(f"Rolling {num} dice...")
-
-        roll = self._roller(num)
-
-        print(",".join([str(i) for i in roll]))
-
-        return roll
-
-    def got_zilch(self, roll):
-
-        initial_score = self.calculate_score(roll)
-
-        if initial_score == 0:
-
-            print("Zilch!!! Round over")
-            Game.zero_score=True
-
-            # self.banker.clear_shelf()
-
-            return True
-
-        return False
-
-    def calculate_score(self, roll):
-        return GameLogic.calculate_score(roll)
-
-    def keep_scorers(self, roll):
-        return GameLogic.get_scorers(roll)
-
-    def gather_keepers(self, roll, keeper_string):
-
-        keepers = [int(ch) for ch in keeper_string]
-
-        while not GameLogic.validate_keepers(roll, keepers):
-            print("Cheater!!! Or possibly made a typo...")
-            print(",".join([str(i) for i in roll]))
-            keeper_string = input("Enter dice to keep (no spaces), or (q)uit: ")
-            if keeper_string.startswith("q"):
-                self.quit_game()
-
-            keepers = [int(ch) for ch in keeper_string]
-
-        return keepers
-
-
-def clear():
-    # stretch goal to allow user to clear terminal mid game
-
-    # os.system("cls" if os.name == "nt" else "clear")
-    pass
-
-
-if __name__ == "__main__":
-    game = Game()
+        if Game.round ==1 and Game.new_game.shelved ==0 :
+            Game.result = Game.welcome()
+
+        if Game.result=="y" or Game.result=="yes":
+            if not Game.new_game.shelved:
+                print(f"Starting round {Game.round}")
+
+            print(f"Rolling {Game.num_dice} dice...")
+            roll=self.roller(Game.num_dice)
+            self.print_roll(roll)
+            GameLogic.how_many=0
+            if not (GameLogic.calculate_score(roll)):
+                self.zilch(len(roll))
+                GameLogic.how_many=0
+                sys.exit()
+                
+                
+
+
+
+            enter=input("Enter dice to keep (no spaces), or (q)uit: ")
+            # print('yyy')
+            if enter.lower() == "q" or enter.lower()=="quit":
+                self.to_quit()
+               
+            else:             
+                roll_list = self.check(roll,enter)
+                if roll_list :  
+                    roll_tuple=tuple(roll_list)
+                    Game.num_dice-=len(roll_tuple)
+                    GameLogic.how_many=0
+                    score = GameLogic.calculate_score(roll_tuple)
+                    if len(roll_tuple) == 6 and GameLogic.how_many==6:
+                        # print('hot dice:',GameLogic.how_many)
+                        Game.status = False
+
+                    if not score:
+                        self.zilch(len(roll_tuple))
+
+            
+                    Game.new_game.shelved = Banker.shelf(Game.new_game,score)
+
+                    print(f"You have {Game.new_game.shelved} unbanked points and {Game.num_dice} dice remaining")
+                    enter_again=input("(r)oll again, (b)ank your points or (q)uit ")
+
+                    if enter_again.lower()== "r" or enter_again.lower() == "roll":
+                        if not Game.num_dice:
+                            Game.num_dice=6
+                        self.play()
+
+                    if enter_again.lower()== "b" or enter_again.lower() == "bank":
+                        print(f"You banked {Game.new_game.shelved} points in round {Game.round}")
+                        Game.round+=1
+                        Game.num_dice=6
+                        Game.banked_score = Banker.bank(Game.new_game)
+                        print(f"Total score is {Game.new_game.balance} points")
+                        self.play()
+
+                    if enter_again.lower()== "q" or enter_again.lower() == "quit":
+                        self.to_quit()
+                      
+
+                        
+                        
+if __name__=="__main__":
+    game=Game()
     game.play()
+
+
+
+
+                        
+
+                
+
+
+
+
+
+
+
+
+
+
+
+
+
