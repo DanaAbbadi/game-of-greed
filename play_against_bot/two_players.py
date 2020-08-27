@@ -58,7 +58,7 @@ class Game:
         self.start_round(self.round_num)
 
         self.round_num += 1
-        if self.banker.balance>900:
+        if self.banker.balance>1000:
             self.win(self.banker.balance)
             # print(f"Total score is {self.banker.balance} points")
 
@@ -97,7 +97,7 @@ class Game:
 
             elif roll_again_response == "b":
 
-                if self.banker.balance>900:
+                if self.banker.balance>1000:
                     self.win(self.banker.balance)
                     break
 
@@ -130,7 +130,7 @@ class Game:
             keepers = self.gather_keepers(roll, keeper_string)
 
             roll_score = self.calculate_score(keepers)
-            if roll_score > 900:
+            if roll_score > 1000:
                 self.win(roll_score)
                 break
 
@@ -140,7 +140,7 @@ class Game:
                 break
 
         self.banker.shelf(roll_score)
-        if self.banker.shelved>900:
+        if self.banker.shelved>1000:
             self.win(self.banker.shelved)
             
 
@@ -163,7 +163,7 @@ class Game:
     def got_zilch(self, roll):
 
         initial_score = self.calculate_score(roll)
-        # if initial_score>=900:
+        # if initial_score>=1000:
         #     self.win(initial_score)
             
 

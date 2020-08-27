@@ -124,6 +124,9 @@ if __name__ == "__main__":
         print('Mr.Angry          Enter 2')
         against = int(input())
         bot = 'Nervous Nellie' if against == 1 else 'Mr.Angry'
+        print("  Who ever reaches 1000 first wins  ")
+        print(" 🎲 Let the hunger games BEGIN!!🎲 ")
+
         while not Game.winning:
             time.sleep(1)
 

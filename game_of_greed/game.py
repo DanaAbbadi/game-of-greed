@@ -152,6 +152,7 @@ class Game():
                 GameLogic.how_many=0
                 sys.exit()
                 
+                
 
 
 
