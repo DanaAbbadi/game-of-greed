@@ -1,114 +1,111 @@
-from abc import abstractmethod, ABC
 from collections import Counter
-import random
+from random import randint
+from abc import abstractmethod, ABC
 
 
-class GameLogic(ABC):
+class GameLogic:
     @staticmethod
-    
-    def rule(num,cmn):
-        if cmn>1 :
-            print('rule>1')
-            return num*100 * (cmn-2)
-        else :
-            print('rule=0')
-            return 0
-    def testt(num,repeat):
-        #(1, 5, 6, 4, 1, 5)
-        result=1
-        print(num)
-        if num==5:
-            if repeat == 1 or repeat == 2 :
-                result= repeat * 50
-                print('5 <1')
-                return result
-            if repeat >2:
-                print('5 >5')
-                return GameLogic.rule(num,repeat)
-        if num==1:
-            print("repeate for 1:",repeat)
-            if repeat == 1 or repeat == 2 :
-                result= repeat * 100
-                print('one case lees 1')
-                return result
-            if repeat >2:
-                result=(repeat-2) *1000
-                print('one case')
-                return result
-        
+    def roll_dice(num=6):
+        return tuple([randint(1, 6) for _ in range(num)])
 
+    @staticmethod
+    def calculate_score(dice):
+        """
+        dice is a tuple of integers represent the user's selected dice pulled out from current roll
+        """
 
-        
-    def tryyy(data):
-        common=(Counter(data).most_common())
-        len_common= len(Counter(data).most_common()) 
-        sum=0
-        for i in range(len_common):
-            num = common[i][0]
-            cmn = common[i][1]
-            if num != 5 and num != 1:
-                print('inside tryyy:',num)
-                sum +=GameLogic.rule(num,cmn)
-            else:
-                print('inside tryyy num is 1:',num)
-                sum+=GameLogic.testt(num,cmn)
-        print('tryyy the rule')
-        return sum
+        if len(dice) > 6:
+            raise Exception("Cheating Cheater!")
 
-    def calculate_score(calc):
-            common=Counter(calc).most_common
-            x=Counter(calc).most_common(1)[0][1]
-            y=Counter(calc).most_common()[0]
+        counts = Counter(dice)
 
-            print(x)
-            if x == 1 and len(calc)==6:
-                print('str')
-                return 1500
-            pairs=0
-            if x == 2 and len(calc)==6:
-                print('here')        
-                for i in range(3):
-                    if Counter(calc).most_common()[i][1]==2:
-                        pairs+=1
-                if pairs==3:
-                    print('pairs')
-                    return 1500
-                else:
-                     print('if len < 6')
-                     return GameLogic.tryyy(calc)
-                
-            else:
-                print('if len < 6')
-                return GameLogic.tryyy(calc)
-                
-    
+        if len(counts) == 6:
+            return 1500
 
-    
-            
+        if len(counts) == 3 and all(val == 2 for val in counts.values()):
+            return 1500
+
+        score = 0
+
+        ones_used = fives_used = False
+
+        for num in range(1, 6 + 1):
+
+            pip_count = counts[num]
+
+            if pip_count >= 3:
+
+                if num == 1:
+
+                    ones_used = True
+
+                elif num == 5:
+
+                    fives_used = True
+
+                score += num * 100
+
+                # handle 4,5,6 of a kind
+                score += score * (pip_count - 3)
+
+                # 1s are worth 10x
+                if num == 1:
+                    score *= 10
+
+        if not ones_used:
+            score += counts.get(1, 0) * 100
+
+        if not fives_used:
+            score += counts.get(5, 0) * 50
+
+        return score
+
+    @staticmethod
+    def validate_keepers(roll, keepers):
+        return not Counter(keepers) - Counter(roll)
+
+    @staticmethod
+    def get_scorers(dice):
+        all_dice_score = GameLogic.calculate_score(dice)
+
+        if all_dice_score == 0:
+            return tuple()
+
+        scorers = []
+
+        for i in range(len(dice)):
+            sub_roll = dice[:i] + dice[i + 1 :]
+            sub_score = GameLogic.calculate_score(sub_roll)
+
+            if sub_score != all_dice_score:
+                scorers.append(dice[i])
+
+        return tuple(scorers)
+
 class Banker(ABC):
-    pass
 
+    def __init__(self):
+        self.balance = 0
+        self.shelved = 0
+    
+    
+    def shelf(self,num):
+        """
+        Will temporarily store unbanked points
 
-def roll_dice(num):
-    roll_dice_array=[]
-    for i in range(num):
-        roll_dice_array.append(random.randint(1,6))
-    return tuple(roll_dice_array)
+        Argument:
+            num{int} --  is the amount of points (integer) to add to shelf.          
+        """
+        self.shelved +=num
+        return self.shelved
 
+    def bank(self):
+        """
+        Add any points on the shelf to total and reset shelf    
+        """
+        self.balance += self.shelved
+        self.shelved = 0
+        return self.balance
 
-if __name__=="__main__":
-    roll=roll_dice(6)
-    # data=[,1,1,1,1,1]
-    print('roll',roll)    
-    # repeat=Counter(data).most_common()[0][1]
-    # x=Counter(data).most_common()[0][1]
-
-    # print(GameLogic.calculate_score([6,1,4,4,4,6]))
-    print(GameLogic.calculate_score(roll))
-
-    # print(Counter(roll).most_common())
-    # print(GameLogic.testt(5,1))
-
-
-
-
+    def clear(self):
+        self.shelved = 0
