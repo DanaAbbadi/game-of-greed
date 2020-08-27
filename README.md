@@ -6,9 +6,12 @@
 
 <br>
 
-The Game of Greed, also known as 10,000, is a dice game where each player competes to be the first to reach 10,000 points. Take risks, push the limit, and get greedy in this game designed for two players.
+The Game of Greed, also known as 10,000, is a dice game where each player competes to be the first to reach 1000 points. Take risks, push the limit, and get greedy!!
 
-The program will calculate the roll’s score according to rules of the game, and will also randomly generate values for rolling the dice.  
+You can play solo or play against a bot, we have two charchters: Nervous Nille and Mr.Angry. Play against them and try your best to win. 
+
+You can play the game by running play_against_bot.py file in the terminal. 
+
 
 <br>
 
@@ -26,9 +29,7 @@ ____
 <br>
 <hr>
 
-# Pull Request:
 
-https://github.com/DanaAbbadi/game-of-greed/pull/2
 
 # Notes:
 
